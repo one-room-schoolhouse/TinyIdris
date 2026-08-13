@@ -2,16 +2,16 @@ module RLE
 
 import Decidable.Equality
 
-rep : Nat -> a -> List a
+rep : Nat → a → List a
 rep 0 x = []
 rep (S k) x = x :: rep k x
 
-data RunLength : List ty -> Type where
+data RunLength : List ty → Type where
      Empty : RunLength []
-     Run : (n : Nat) -> (x : ty) -> RunLength more ->
+     Run : (n : Nat) → (x : ty) → RunLength more →
            RunLength (rep n x ++ more)
 
-rle : DecEq a => (xs : List a) -> RunLength xs
+rle : DecEq a ⇒ (xs : List a) → RunLength xs
 rle [] = Empty
 rle (x :: xs) with (rle xs)
   rle (x :: []) | Empty = Run 1 x Empty
@@ -24,7 +24,7 @@ rle (x :: xs) with (rle xs)
 testComp : RunLength {ty=Char} ?
 testComp = Run 3 'x' $ Run 4 'y' $ Empty
 
-data Singleton : a -> Type where
-     Val : (x : a) -> Singleton x
+data Singleton : a → Type where
+     Val : (x : a) → Singleton x
 
-uncompress : RunLength {ty} xs -> Singleton xs
+uncompress : RunLength {ty} xs → Singleton xs

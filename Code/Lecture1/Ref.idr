@@ -2,7 +2,7 @@ import Core.Core
 
 data Counter : Type where
 
-coreProg : {auto c : Ref Counter Integer} ->
+coreProg : {auto c : Ref Counter Integer} →
            Core ()
 coreProg
     = do count <- get Counter
@@ -19,5 +19,5 @@ coreMain
 
 main : IO ()
 main = coreRun coreMain
-               (\err => putStrLn "It went wrong")
+               (\err ⇒ putStrLn "It went wrong")
                pure

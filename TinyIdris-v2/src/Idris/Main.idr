@@ -17,13 +17,13 @@ import Parser.Source
 
 import System
 
-repl : {auto c : Ref Ctxt Defs} ->
-       {auto u : Ref UST UState} ->
+repl : {auto c : Ref Ctxt Defs} →
+       {auto u : Ref UST UState} →
        Core ()
 repl = do coreLift $ putStr "> "
           inp <- coreLift getLine
           let Right ttexp = runParser Nothing inp (expr "(input)" init)
-              | Left err => do coreLift $ printLn err
+              | Left err ⇒ do coreLift $ printLn err
                                repl
           (tm, ty) <- checkTerm [] ttexp Nothing
           coreLift $ putStrLn $ "Checked: " ++ show tm
@@ -33,7 +33,7 @@ repl = do coreLift $ putStr "> "
           coreLift $ putStrLn $ "Evaluated: " ++ show nf
           repl
 
-runMain : List ImpDecl -> Core ()
+runMain : List ImpDecl → Core ()
 runMain decls
     = do c <- newRef Ctxt !initDefs
          u <- newRef UST initUState
@@ -42,9 +42,9 @@ runMain decls
 
 main : IO ()
 main = do [_, fname] <- getArgs
-              | _ => putStrLn "Usage: tinyidris <filename>"
+              | _ ⇒ putStrLn "Usage: tinyidris <filename>"
           Right decls <- parseFile fname (do p <- prog fname; eoi; pure p)
-              | Left err => printLn err
+              | Left err ⇒ printLn err
           coreRun (runMain decls)
-                  (\err => printLn err)
+                  (\err ⇒ printLn err)
                   pure

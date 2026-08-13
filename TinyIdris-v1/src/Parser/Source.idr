@@ -10,9 +10,9 @@ import Utils.Either
 %default total
 
 export
-runParserTo : {e : _} ->
-              Maybe LiterateStyle -> (TokenData Token -> Bool) ->
-              String -> Grammar (TokenData Token) e ty -> Either (ParseError Token) ty
+runParserTo : {e : _} →
+              Maybe LiterateStyle → (TokenData Token → Bool) →
+              String → Grammar (TokenData Token) e ty → Either (ParseError Token) ty
 runParserTo lit pred str p
     = do str    <- mapError LitFail $ unlit lit str
          toks   <- mapError LexFail $ lexTo pred str
@@ -20,13 +20,13 @@ runParserTo lit pred str p
          Right (fst parsed)
 
 export
-runParser : {e : _} ->
-            Maybe LiterateStyle -> String -> Grammar (TokenData Token) e ty -> Either (ParseError Token) ty
+runParser : {e : _} →
+            Maybe LiterateStyle → String → Grammar (TokenData Token) e ty → Either (ParseError Token) ty
 runParser lit = runParserTo lit (const False)
 
 export covering
-parseFile : (fn : String) -> Rule ty -> IO (Either (ParseError Token) ty)
+parseFile : (fn : String) → Rule ty → IO (Either (ParseError Token) ty)
 parseFile fn p
     = do Right str <- readFile fn
-             | Left err => pure (Left (FileFail err))
+             | Left err ⇒ pure (Left (FileFail err))
          pure (runParser (isLitFile fn) str p)

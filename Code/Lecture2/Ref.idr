@@ -13,5 +13,5 @@ coreMain
 
 main : IO ()
 main = coreRun coreMain
-               (\err => putStrLn "It went wrong")
+               (\err ⇒ putStrLn "It went wrong")
                pure

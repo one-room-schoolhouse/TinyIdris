@@ -21,24 +21,24 @@ record UnifyResult where
   holesSolved : Bool -- did we solve any holes on the way?
 
 public export
-interface Unify (tm : List Name -> Type) where
-  unify : {vars : _} ->
-          {auto c : Ref Ctxt Defs} ->
-          {auto u : Ref UST UState} ->
-          Env Term vars ->
-          tm vars -> tm vars ->
+interface Unify (tm : List Name → Type) where
+  unify : {vars : _} →
+          {auto c : Ref Ctxt Defs} →
+          {auto u : Ref UST UState} →
+          Env Term vars →
+          tm vars → tm vars →
           Core UnifyResult
 
-union : UnifyResult -> UnifyResult -> UnifyResult
+union : UnifyResult → UnifyResult → UnifyResult
 union u1 u2 = MkUnifyResult (union (constraints u1) (constraints u2))
                             (holesSolved u1 || holesSolved u2)
 
-unionAll : List UnifyResult -> UnifyResult
+unionAll : List UnifyResult → UnifyResult
 unionAll [] = MkUnifyResult [] False
 unionAll [c] = c
 unionAll (c :: cs) = union c (unionAll cs)
 
-constrain : Int -> UnifyResult
+constrain : Int → UnifyResult
 constrain c = MkUnifyResult [c] False
 
 success : UnifyResult
@@ -47,15 +47,15 @@ success = MkUnifyResult [] False
 solvedHole : UnifyResult
 solvedHole = MkUnifyResult [] True
 
-ufail : String -> Core a
+ufail : String → Core a
 ufail msg = throw (GenericMsg msg)
 
-unifyArgs : (Unify tm, Quote tm) =>
-            {vars : _} ->
-            {auto c : Ref Ctxt Defs} ->
-            {auto u : Ref UST UState} ->
-            Env Term vars ->
-            List (tm vars) -> List (tm vars) ->
+unifyArgs : (Unify tm, Quote tm) ⇒
+            {vars : _} →
+            {auto c : Ref Ctxt Defs} →
+            {auto u : Ref UST UState} →
+            Env Term vars →
+            List (tm vars) → List (tm vars) →
             Core UnifyResult
 unifyArgs env [] [] = pure success
 unifyArgs env (cx :: cxs) (cy :: cys)
@@ -66,9 +66,9 @@ unifyArgs env (cx :: cxs) (cy :: cys)
          pure (union res cs)
 unifyArgs env _ _ = ufail ""
 
-convertError : {vars : _} ->
-               {auto c : Ref Ctxt Defs} ->
-               Env Term vars -> NF vars -> NF vars -> Core a
+convertError : {vars : _} →
+               {auto c : Ref Ctxt Defs} →
+               Env Term vars → NF vars → NF vars → Core a
 convertError env x y
     = do defs <- get Ctxt
          empty <- clearDefs defs
@@ -76,10 +76,10 @@ convertError env x y
                                 !(quote empty env y))
 
 
-postpone : {vars : _} ->
-           {auto c : Ref Ctxt Defs} ->
-           {auto u : Ref UST UState} ->
-           Env Term vars -> NF vars -> NF vars -> Core UnifyResult
+postpone : {vars : _} →
+           {auto c : Ref Ctxt Defs} →
+           {auto u : Ref UST UState} →
+           Env Term vars → NF vars → NF vars → Core UnifyResult
 postpone env x y
     = do defs <- get Ctxt
          empty <- clearDefs defs
@@ -93,8 +93,8 @@ postpone env x y
 -- are not variables, fail if there's any repetition of variables
 -- We use this to check that the pattern unification rule is applicable
 -- when solving a metavariable applied to arguments
-getVars : {vars : _} ->
-          List Nat -> List (NF vars) -> Maybe (List (Var vars))
+getVars : {vars : _} →
+          List Nat → List (NF vars) → Maybe (List (Var vars))
 getVars got [] = Just []
 getVars got (NApp (NLocal idx v) [] :: xs)
     = if inArgs idx got then Nothing
@@ -102,7 +102,7 @@ getVars got (NApp (NLocal idx v) [] :: xs)
                  pure (MkVar v :: xs')
   where
     -- Inlined 'elem' by hand - this was a tiny cost saving in Idris 1!
-    inArgs : Nat -> List Nat -> Bool
+    inArgs : Nat → List Nat → Bool
     inArgs n [] = False
     inArgs n (n' :: ns)
         = natToInteger n == natToInteger n' || inArgs n ns
@@ -111,7 +111,7 @@ getVars _ (_ :: xs) = Nothing
 -- Make a sublist representing the variables used in the application.
 -- We'll use this to ensure that local variables which appear in a term
 -- are all arguments to a metavariable application for pattern unification
-toSubVars : (vars : List Name) -> List (Var vars) ->
+toSubVars : (vars : List Name) → List (Var vars) →
             (newvars ** SubVars newvars vars)
 toSubVars [] xs = ([] ** SubRefl)
 toSubVars (n :: ns) xs
@@ -124,7 +124,7 @@ toSubVars (n :: ns) xs
               then (_ ** KeepCons svs)
               else (_ ** DropCons svs)
   where
-    anyFirst : List (Var (n :: ns)) -> Bool
+    anyFirst : List (Var (n :: ns)) → Bool
     anyFirst [] = False
     anyFirst (MkVar First :: xs) = True
     anyFirst (MkVar (Later p) :: xs) = anyFirst xs
@@ -144,10 +144,10 @@ toSubVars (n :: ns) xs
    Also, return the list of arguments the metavariable was applied to, to
    make sure we use them in the right order when we build the solution.
 -}
-patternEnv : {auto c : Ref Ctxt Defs} ->
-             {auto u : Ref UST UState} ->
-             {vars : _} ->
-             Env Term vars -> List (Closure vars) ->
+patternEnv : {auto c : Ref Ctxt Defs} →
+             {auto u : Ref UST UState} →
+             {vars : _} →
+             Env Term vars → List (Closure vars) →
              Core (Maybe (newvars ** (List (Var newvars),
                                      SubVars newvars vars)))
 patternEnv {vars} env args
@@ -155,8 +155,8 @@ patternEnv {vars} env args
          empty <- clearDefs defs
          args' <- traverse (evalClosure empty) args
          case getVars [] args' of
-              Nothing => pure Nothing
-              Just vs =>
+              Nothing ⇒ pure Nothing
+              Just vs ⇒
                  let (newvars ** svs) = toSubVars _ vs in
                      pure (Just (newvars **
                                      (updateVars vs svs, svs)))
@@ -164,18 +164,18 @@ patternEnv {vars} env args
     -- Update the variable list to point into the sub environment
     -- (All of these will succeed because the SubVars we have comes from
     -- the list of variable uses! It's not stated in the type, though.)
-    updateVars : List (Var vars) -> SubVars newvars vars -> List (Var newvars)
+    updateVars : List (Var vars) → SubVars newvars vars → List (Var newvars)
     updateVars [] svs = []
     updateVars (MkVar p :: ps) svs
         = case subElem p svs of
-               Nothing => updateVars ps svs
-               Just p' => p' :: updateVars ps svs
+               Nothing ⇒ updateVars ps svs
+               Just p' ⇒ p' :: updateVars ps svs
 
 -- How the variables in a metavariable definition map to the variables in
 -- the solution term (the Var newvars)
-data IVars : List Name -> List Name -> Type where
+data IVars : List Name → List Name → Type where
      INil : IVars [] newvars
-     ICons : Maybe (Var newvars) -> IVars vs newvars ->
+     ICons : Maybe (Var newvars) → IVars vs newvars →
              IVars (v :: vs) newvars
 
 Weaken (IVars vs) where
@@ -183,7 +183,7 @@ Weaken (IVars vs) where
   weaken (ICons Nothing ts) = ICons Nothing (weaken ts)
   weaken (ICons (Just t) ts) = ICons (Just (weaken t)) (weaken ts)
 
-getIVars : IVars vs ns -> List (Maybe (Var ns))
+getIVars : IVars vs ns → List (Maybe (Var ns))
 getIVars INil = []
 getIVars (ICons v vs) = v :: getIVars vs
 
@@ -191,14 +191,14 @@ getIVars (ICons v vs) = v :: getIVars vs
 -- and solving the given metavariable with the resulting term.
 -- If the type of the metavariable doesn't have enough arguments, fail, because
 -- this wasn't valid for pattern unification
-instantiate : {auto c : Ref Ctxt Defs} ->
-              {auto u : Ref UST UState} ->
-              {vars, newvars : _} ->
-              Env Term vars ->
-              (metavar : Name) -> -- Metavariable we're solving
-              (mdef : GlobalDef) -> -- Current definition (for its type)
-              List (Var newvars) -> -- Variable each argument maps to
-              Term newvars -> -- Term to instantiate, in the environment
+instantiate : {auto c : Ref Ctxt Defs} →
+              {auto u : Ref UST UState} →
+              {vars, newvars : _} →
+              Env Term vars →
+              (metavar : Name) → -- Metavariable we're solving
+              (mdef : GlobalDef) → -- Current definition (for its type)
+              List (Var newvars) → -- Variable each argument maps to
+              Term newvars → -- Term to instantiate, in the environment
                               -- required by the metavariable
               Core ()
 instantiate {newvars} env mname mdef locs tm
@@ -212,8 +212,8 @@ instantiate {newvars} env mname mdef locs tm
          addDef mname newdef
          removeHole mname
   where
-    updateIVar : {v : Nat} ->
-                 forall vs, newvars . IVars vs newvars -> (0 p : IsVar name v newvars) ->
+    updateIVar : {v : Nat} →
+                 forall vs, newvars . IVars vs newvars → (0 p : IsVar name v newvars) →
                  Maybe (Var vs)
     updateIVar {v} (ICons Nothing rest) prf
         = do MkVar prf' <- updateIVar rest prf
@@ -225,8 +225,8 @@ instantiate {newvars} env mname mdef locs tm
                      Just (MkVar (Later prf'))
     updateIVar _ _ = Nothing
 
-    updateIVars : {vs, newvars : _} ->
-                  IVars vs newvars -> Term newvars -> Maybe (Term vs)
+    updateIVars : {vs, newvars : _} →
+                  IVars vs newvars → Term newvars → Maybe (Term vs)
     updateIVars ivs (Local idx p)
         = do MkVar p' <- updateIVar ivs p
              Just (Local _ p')
@@ -238,8 +238,8 @@ instantiate {newvars} env mname mdef locs tm
              sc' <- updateIVars (ICons (Just (MkVar First)) (weaken ivs)) sc
              Just (Bind x b' sc')
       where
-        updateIVarsB : {vs, newvars : _} ->
-                       IVars vs newvars -> Binder (Term newvars) -> Maybe (Binder (Term vs))
+        updateIVarsB : {vs, newvars : _} →
+                       IVars vs newvars → Binder (Term newvars) → Maybe (Binder (Term vs))
         updateIVarsB ivs (Lam p t)
             = Just (Lam p !(updateIVars ivs t))
         updateIVarsB ivs (Pi p t)
@@ -253,25 +253,25 @@ instantiate {newvars} env mname mdef locs tm
     updateIVars ivs Erased = Just Erased
     updateIVars ivs TType = Just TType
 
-    mkDef : {vs, newvars : _} ->
-            List (Var newvars) ->
-            IVars vs newvars -> Term newvars -> Term vs ->
+    mkDef : {vs, newvars : _} →
+            List (Var newvars) →
+            IVars vs newvars → Term newvars → Term vs →
             Core (Term vs)
     mkDef (v :: vs) vars soln (Bind x (Pi _ ty) sc)
        = do sc' <- mkDef vs (ICons (Just v) vars) soln sc
             pure $ Bind x (Lam Explicit Erased) sc'
     mkDef [] vars soln ty
        = do let Just soln' = updateIVars vars soln
-                | Nothing => ufail ("Can't make solution for " ++ show mname)
+                | Nothing ⇒ ufail ("Can't make solution for " ++ show mname)
             pure soln'
     mkDef _ _ _ ty = ufail $ "Can't make solution for " ++ show mname
                                  ++ " at " ++ show ty
 
 mutual
-  unifyIfEq : {auto c : Ref Ctxt Defs} ->
-              {auto u : Ref UST UState} ->
-              {vars : _} ->
-              Bool -> Env Term vars -> NF vars -> NF vars ->
+  unifyIfEq : {auto c : Ref Ctxt Defs} →
+              {auto u : Ref UST UState} →
+              {vars : _} →
+              Bool → Env Term vars → NF vars → NF vars →
               Core UnifyResult
   unifyIfEq post env x y
         = do defs <- get Ctxt
@@ -281,20 +281,20 @@ mutual
                         then postpone env x y
                         else convertError env x y
 
-  unifyApp : {vars : _} ->
-             {auto c : Ref Ctxt Defs} ->
-             {auto u : Ref UST UState} ->
-             Env Term vars ->
-             NHead vars -> List (Closure vars) ->
-             NF vars ->
+  unifyApp : {vars : _} →
+             {auto c : Ref Ctxt Defs} →
+             {auto u : Ref UST UState} →
+             Env Term vars →
+             NHead vars → List (Closure vars) →
+             NF vars →
              Core UnifyResult
   unifyApp env (NMeta n margs) fargs tmnf
       = do let args = margs ++ fargs
            case !(patternEnv env args) of
-                Nothing =>
+                Nothing ⇒
                     -- not in pattern form so postpone
                     postpone env (NApp (NMeta n margs) fargs) tmnf
-                Just (newvars ** (locs, submv)) =>
+                Just (newvars ** (locs, submv)) ⇒
                     -- In pattern form, using the 'submv' fragment of the
                     -- environment
                     do -- TODO (Exercise): We need to do an occurs check here
@@ -304,13 +304,13 @@ mutual
                        empty <- clearDefs defs
                        tm <- quote empty env tmnf
                        case shrinkTerm tm submv of
-                            Nothing => 
+                            Nothing ⇒
                               -- Not well scoped, but it might be if we
                               -- normalise (TODO: Exercise)
                               postpone env (NApp (NMeta n margs) fargs) tmnf
-                            Just stm =>
+                            Just stm ⇒
                                  do Just gdef <- lookupDef n defs
-                                         | Nothing => throw (UndefinedName n)
+                                         | Nothing ⇒ throw (UndefinedName n)
                                     instantiate env n gdef locs stm
                                     pure solvedHole
 
@@ -362,64 +362,64 @@ mutual
              unify env xnf ynf
 
 -- Retry the given constraint, by constraint id
-retry : {auto c : Ref Ctxt Defs} ->
-        {auto u : Ref UST UState} ->
-        Int -> Core UnifyResult
+retry : {auto c : Ref Ctxt Defs} →
+        {auto u : Ref UST UState} →
+        Int → Core UnifyResult
 retry c
     = do ust <- get UST
          case lookup c (constraints ust) of
-              Nothing => pure success
-              Just Resolved => pure success
-              Just (MkConstraint env x y) =>
+              Nothing ⇒ pure success
+              Just Resolved ⇒ pure success
+              Just (MkConstraint env x y) ⇒
                  do cs <- unify env x y
                     -- If the constraint is solved now, with no new constraints,
                     -- delete the constraint, otherwise come back to it later.
                     case (constraints cs) of
-                         [] => do deleteConstraint c
+                         [] ⇒ do deleteConstraint c
                                   pure cs
-                         _ => pure cs
-              Just (MkSeqConstraint env xs ys) =>
+                         _ ⇒ pure cs
+              Just (MkSeqConstraint env xs ys) ⇒
                  do cs <- unifyArgs env xs ys
                     -- As above, check whether there are new contraints
                     case (constraints cs) of
-                         [] => do deleteConstraint c
+                         [] ⇒ do deleteConstraint c
                                   pure cs
-                         _ => pure cs
+                         _ ⇒ pure cs
 
 -- Retry the constraints for the given definition, return True if progress
 -- was made
-retryGuess : {auto c : Ref Ctxt Defs} ->
-             {auto u : Ref UST UState} ->
-             (hole : Name) ->
+retryGuess : {auto c : Ref Ctxt Defs} →
+             {auto u : Ref UST UState} →
+             (hole : Name) →
              Core Bool
 retryGuess n
     = do defs <- get Ctxt
          case !(lookupDef n defs) of
-              Nothing => pure False
-              Just gdef => 
+              Nothing ⇒ pure False
+              Just gdef ⇒
                 case definition gdef of
-                     Guess tm cs =>
+                     Guess tm cs ⇒
                         do cs' <- traverse retry cs
                            let csAll = unionAll cs'
                            case constraints csAll of
-                                [] => -- fine now, complete the definition
+                                [] ⇒ -- fine now, complete the definition
                                       do let gdef = record {
                                                       definition = PMDef [] (STerm tm)
                                                     } gdef
                                          updateDef n (const gdef)
                                          pure True
-                                cs => -- still constraints, but might be new
+                                cs ⇒ -- still constraints, but might be new
                                       -- ones, so update the definition
                                       do let gdef = record {
                                                       definition = Guess tm cs
                                                     } gdef
                                          updateDef n (const gdef)
                                          pure False
-                     _ => pure False
+                     _ ⇒ pure False
 
 export
-solveConstraints : {auto c : Ref Ctxt Defs} ->
-                   {auto u : Ref UST UState} ->
+solveConstraints : {auto c : Ref Ctxt Defs} →
+                   {auto u : Ref UST UState} →
                    Core ()
 solveConstraints
     = do ust <- get UST

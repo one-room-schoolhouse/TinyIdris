@@ -11,8 +11,8 @@ import TTImp.TTImp
 import Data.List
 
 export
-processCon : {auto c : Ref Ctxt Defs} ->
-             ImpTy -> Core (Name, Term [])
+processCon : {auto c : Ref Ctxt Defs} →
+             ImpTy → Core (Name, Term [])
 processCon (MkImpTy n ty)
     = do (tychk, _) <- checkTerm [] ty (Just gType)
          -- Exercise: What other checks are needed?
@@ -20,8 +20,8 @@ processCon (MkImpTy n ty)
          pure (n, tychk)
 
 export
-processData : {auto c : Ref Ctxt Defs} ->
-              ImpData -> Core ()
+processData : {auto c : Ref Ctxt Defs} →
+              ImpData → Core ()
 processData (MkImpData n tycon datacons)
     = do (tychk, _) <- checkTerm [] tycon (Just gType)
          -- Add it to the context before checking data constructors
@@ -32,7 +32,7 @@ processData (MkImpData n tycon datacons)
          chkcons <- traverse processCon datacons
 
          defs <- get Ctxt
-         traverse_ (\ (i, (cn, ty)) =>
+         traverse_ (\ (i, (cn, ty)) ⇒
                        do carity <- getArity defs [] ty
                           addDef cn (newDef ty (DCon (cast i) carity)))
                    (zip [0..(length chkcons)] chkcons)

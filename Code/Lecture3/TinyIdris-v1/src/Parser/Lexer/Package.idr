@@ -46,21 +46,21 @@ rawTokens =
   , (identAllowDashes, DotSepIdent . pure)
   , (separator, const Separator)
   , (spacesOrNewlines, const Space)
-  , (stringLit, \s => StringLit (stripQuotes s))
+  , (stringLit, \s ⇒ StringLit (stripQuotes s))
   ]
   where
-    splitNamespace : String -> List1 String
+    splitNamespace : String → List1 String
     splitNamespace = Data.Strings.split (== '.')
 
 export
-lex : String -> Either (Int, Int, String) (List (TokenData Token))
+lex : String → Either (Int, Int, String) (List (TokenData Token))
 lex str =
   case lexTo (const False) rawTokens str of
-       (tokenData, (l, c, "")) =>
+       (tokenData, (l, c, "")) ⇒
          Right $ (filter (useful . tok) tokenData) ++  [MkToken l c l c EndOfInput]
-       (_, fail) => Left fail
+       (_, fail) ⇒ Left fail
   where
-    useful : Token -> Bool
+    useful : Token → Bool
     useful (Comment c) = False
     useful Space       = False
     useful _ = True

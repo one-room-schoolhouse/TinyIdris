@@ -13,17 +13,17 @@ public export
 data Constraint : Type where
      -- An unsolved constraint, noting two terms which need to be convertible
      -- in a particular environment
-     MkConstraint : {vars : _} ->
-                    (env : Env Term vars) ->
-                    (x : Term vars) -> (y : Term vars) ->
+     MkConstraint : {vars : _} →
+                    (env : Env Term vars) →
+                    (x : Term vars) → (y : Term vars) →
                     Constraint
      -- An unsolved sequence of constraints, arising from arguments in an
      -- application where solving later constraints relies on solving earlier
      -- ones
-     MkSeqConstraint : {vars : _} ->
-                       (env : Env Term vars) ->
-                       (xs : List (Term vars)) ->
-                       (ys : List (Term vars)) ->
+     MkSeqConstraint : {vars : _} →
+                       (env : Env Term vars) →
+                       (xs : List (Term vars)) →
+                       (ys : List (Term vars)) →
                        Constraint
      -- A resolved constraint
      Resolved : Constraint
@@ -45,7 +45,7 @@ export
 data UST : Type where
 
 export
-resetNextVar : {auto u : Ref UST UState} ->
+resetNextVar : {auto u : Ref UST UState} →
                Core ()
 resetNextVar
     = do ust <- get UST
@@ -53,35 +53,35 @@ resetNextVar
 
 -- Generate a global name based on the given root, in the current namespace
 export
-genName : {auto u : Ref UST UState} ->
-          String -> Core Name
+genName : {auto u : Ref UST UState} →
+          String → Core Name
 genName str
     = do ust <- get UST
          put UST (record { nextName $= (+1) } ust)
          pure (MN str (nextName ust))
 
-addHoleName : {auto u : Ref UST UState} ->
-              Name -> Core ()
+addHoleName : {auto u : Ref UST UState} →
+              Name → Core ()
 addHoleName n
     = do ust <- get UST
          put UST (record { holes $= insert n } ust)
 
-addGuessName : {auto u : Ref UST UState} ->
-               Name -> Core ()
+addGuessName : {auto u : Ref UST UState} →
+               Name → Core ()
 addGuessName n
     = do ust <- get UST
          put UST (record { guesses $= insert n  } ust)
 
 export
-removeHole : {auto u : Ref UST UState} ->
-             Name -> Core ()
+removeHole : {auto u : Ref UST UState} →
+             Name → Core ()
 removeHole n
     = do ust <- get UST
          put UST (record { holes $= delete n } ust)
 
 export
-addConstraint : {auto u : Ref UST UState} ->
-                Constraint -> Core Int
+addConstraint : {auto u : Ref UST UState} →
+                Constraint → Core Int
 addConstraint constr
     = do ust <- get UST
          let cid = nextConstraint ust
@@ -90,8 +90,8 @@ addConstraint constr
          pure cid
 
 export
-deleteConstraint : {auto u : Ref UST UState} ->
-                Int -> Core ()
+deleteConstraint : {auto u : Ref UST UState} →
+                Int → Core ()
 deleteConstraint cid
     = do ust <- get UST
          put UST (record { constraints $= delete cid } ust)
@@ -100,17 +100,17 @@ deleteConstraint cid
 -- Don't include 'let' bindings, since they have a concrete value and
 -- shouldn't be generalised
 export
-abstractEnvType : {vars : _} ->
-                  Env Term vars -> (tm : Term vars) -> Term []
+abstractEnvType : {vars : _} →
+                  Env Term vars → (tm : Term vars) → Term []
 abstractEnvType [] tm = tm
 abstractEnvType (Pi e ty :: env) tm
     = abstractEnvType env (Bind _ (Pi e ty) tm)
 abstractEnvType (b :: env) tm
     = abstractEnvType env (Bind _ (Pi Explicit (binderType b)) tm)
 
-mkConstantAppArgs : {vars : _} ->
-                    Env Term vars ->
-                    (wkns : List Name) ->
+mkConstantAppArgs : {vars : _} →
+                    Env Term vars →
+                    (wkns : List Name) →
                     List (Term (wkns ++ (vars ++ done)))
 mkConstantAppArgs [] wkns = []
 mkConstantAppArgs {done} {vars = x :: xs} (b :: env) wkns
@@ -118,7 +118,7 @@ mkConstantAppArgs {done} {vars = x :: xs} (b :: env) wkns
           Local (length wkns) (mkVar wkns) ::
                   rewrite (appendAssociative wkns [x] (xs ++ done)) in rec
   where
-    mkVar : (wkns : List Name) ->
+    mkVar : (wkns : List Name) →
             IsVar name (length wkns) (wkns ++ name :: vars ++ done)
     mkVar [] = First
     mkVar (w :: ws) = Later (mkVar ws)
@@ -127,10 +127,10 @@ mkConstantAppArgs {done} {vars = x :: xs} (b :: env) wkns
 -- and return a term which is the metavariable applied to the environment
 -- (and which has the given type)
 export
-newMeta : {vars : _} ->
-          {auto c : Ref Ctxt Defs} ->
-          {auto u : Ref UST UState} ->
-          Env Term vars -> Name -> Term vars -> Def ->
+newMeta : {vars : _} →
+          {auto c : Ref Ctxt Defs} →
+          {auto u : Ref UST UState} →
+          Env Term vars → Name → Term vars → Def →
           Core (Term vars)
 newMeta {vars} env n ty def
     = do let hty = abstractEnvType env ty
@@ -143,8 +143,8 @@ newMeta {vars} env n ty def
     envArgs = let args = reverse (mkConstantAppArgs {done = []} env []) in
                   rewrite sym (appendNilRightNeutral vars) in args
 
-mkConstant : {vars : _} ->
-             Env Term vars -> Term vars -> Term []
+mkConstant : {vars : _} →
+             Env Term vars → Term vars → Term []
 mkConstant [] tm = tm
 mkConstant {vars = x :: _} (b :: env) tm
     = let ty = binderType b in
@@ -154,12 +154,12 @@ mkConstant {vars = x :: _} (b :: env) tm
 -- by applying the term to the current environment
 -- Return the replacement term (the name applied to the environment)
 export
-newConstant : {vars : _} ->
-              {auto u : Ref UST UState} ->
-              {auto c : Ref Ctxt Defs} ->
-              Env Term vars ->
-              (tm : Term vars) -> (ty : Term vars) ->
-              (constrs : List Int) ->
+newConstant : {vars : _} →
+              {auto u : Ref UST UState} →
+              {auto c : Ref Ctxt Defs} →
+              Env Term vars →
+              (tm : Term vars) → (ty : Term vars) →
+              (constrs : List Int) →
               Core (Term vars)
 newConstant {vars} env tm ty constrs
     = do let def = mkConstant env tm

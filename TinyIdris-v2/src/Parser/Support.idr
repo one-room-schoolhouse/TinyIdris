@@ -19,7 +19,7 @@ data ParseError tok
   | LitFail   LiterateError
 
 export
-Show tok => Show (ParseError tok) where
+Show tok ⇒ Show (ParseError tok) where
   show (ParseFail err loc toks)
       = "Parse error: " ++ err ++ " (next tokens: "
             ++ show (take 10 toks) ++ ")"
@@ -31,12 +31,12 @@ Show tok => Show (ParseError tok) where
       = "Lit error(s) at " ++ show (c, l) ++ " input: " ++ str
 
 export
-toGenericParsingError : ParsingError (TokenData token) -> ParseError token
+toGenericParsingError : ParsingError (TokenData token) → ParseError token
 toGenericParsingError (Error err [])      = ParseFail err Nothing []
 toGenericParsingError (Error err (t::ts)) = ParseFail err (Just (line t, col t)) (map tok (t::ts))
 
 export
-hex : Char -> Maybe Int
+hex : Char → Maybe Int
 hex '0' = Just 0
 hex '1' = Just 1
 hex '2' = Just 2
@@ -56,7 +56,7 @@ hex 'f' = Just 15
 hex _ = Nothing
 
 export
-dec : Char -> Maybe Int
+dec : Char → Maybe Int
 dec '0' = Just 0
 dec '1' = Just 1
 dec '2' = Just 2
@@ -70,7 +70,7 @@ dec '9' = Just 9
 dec _ = Nothing
 
 export
-oct : Char -> Maybe Int
+oct : Char → Maybe Int
 oct '0' = Just 0
 oct '1' = Just 1
 oct '2' = Just 2
@@ -82,7 +82,7 @@ oct '7' = Just 7
 oct _ = Nothing
 
 export
-getEsc : String -> Maybe Char
+getEsc : String → Maybe Char
 getEsc "NUL" = Just '\NUL'
 getEsc "SOH" = Just '\SOH'
 getEsc "STX" = Just '\STX'
@@ -119,7 +119,7 @@ getEsc "SP" = Just '\SP'
 getEsc "DEL" = Just '\DEL'
 getEsc str = Nothing
 
-escape' : List Char -> Maybe (List Char)
+escape' : List Char → Maybe (List Char)
 escape' [] = pure []
 escape' ('\\' :: '\\' :: xs) = pure $ '\\' :: !(escape' xs)
 escape' ('\\' :: '&' :: xs) = pure !(escape' xs)
@@ -134,47 +134,47 @@ escape' ('\\' :: '\'' :: xs) = pure $ '\'' :: !(escape' xs)
 escape' ('\\' :: '\"' :: xs) = pure $ '\"' :: !(escape' xs)
 escape' ('\\' :: 'x' :: xs)
     = case span isHexDigit xs of
-           ([], rest) => assert_total (escape' rest)
-           (ds, rest) => pure $ cast !(toHex 1 (reverse ds)) ::
+           ([], rest) ⇒ assert_total (escape' rest)
+           (ds, rest) ⇒ pure $ cast !(toHex 1 (reverse ds)) ::
                                  !(assert_total (escape' rest))
   where
-    toHex : Int -> List Char -> Maybe Int
+    toHex : Int → List Char → Maybe Int
     toHex _ [] = Just 0
     toHex m (d :: ds)
         = pure $ !(hex (toLower d)) * m + !(toHex (m*16) ds)
 escape' ('\\' :: 'o' :: xs)
     = case span isOctDigit xs of
-           ([], rest) => assert_total (escape' rest)
-           (ds, rest) => pure $ cast !(toOct 1 (reverse ds)) ::
+           ([], rest) ⇒ assert_total (escape' rest)
+           (ds, rest) ⇒ pure $ cast !(toOct 1 (reverse ds)) ::
                                  !(assert_total (escape' rest))
   where
-    toOct : Int -> List Char -> Maybe Int
+    toOct : Int → List Char → Maybe Int
     toOct _ [] = Just 0
     toOct m (d :: ds)
         = pure $ !(oct (toLower d)) * m + !(toOct (m*8) ds)
 escape' ('\\' :: xs)
     = case span isDigit xs of
-           ([], (a :: b :: c :: rest)) =>
+           ([], (a :: b :: c :: rest)) ⇒
                case getEsc (fastPack (the (List _) [a, b, c])) of
-                   Just v => Just (v :: !(assert_total (escape' rest)))
-                   Nothing => case getEsc (fastPack (the (List _) [a, b])) of
-                                   Just v => Just (v :: !(assert_total (escape' (c :: rest))))
-                                   Nothing => escape' xs
-           ([], (a :: b :: [])) =>
+                   Just v ⇒ Just (v :: !(assert_total (escape' rest)))
+                   Nothing ⇒ case getEsc (fastPack (the (List _) [a, b])) of
+                                   Just v ⇒ Just (v :: !(assert_total (escape' (c :: rest))))
+                                   Nothing ⇒ escape' xs
+           ([], (a :: b :: [])) ⇒
                case getEsc (fastPack (the (List _) [a, b])) of
-                   Just v => Just (v :: [])
-                   Nothing => escape' xs
-           ([], rest) => assert_total (escape' rest)
-           (ds, rest) => Just $ cast (cast {to=Int} (fastPack ds)) ::
+                   Just v ⇒ Just (v :: [])
+                   Nothing ⇒ escape' xs
+           ([], rest) ⇒ assert_total (escape' rest)
+           (ds, rest) ⇒ Just $ cast (cast {to=Int} (fastPack ds)) ::
                                  !(assert_total (escape' rest))
 escape' (x :: xs) = Just $ x :: !(escape' xs)
 
 export
-escape : String -> Maybe String
+escape : String → Maybe String
 escape x = pure $ fastPack !(escape' (unpack x))
 
 export
-getCharLit : String -> Maybe Char
+getCharLit : String → Maybe Char
 getCharLit str
    = do e <- escape str
         if length e == 1

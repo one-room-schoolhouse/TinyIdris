@@ -12,7 +12,7 @@ import Utils.Either
 %default total
 
 export
-runParser : String -> Rule ty -> Either (ParseError Token) ty
+runParser : String → Rule ty → Either (ParseError Token) ty
 runParser str p
     = do toks   <- mapError LexFail $ lex str
          parsed <- mapError toGenericParsingError $ parse p toks
@@ -20,8 +20,8 @@ runParser str p
 
 export
 covering
-parseFile : (fn : String) -> Rule ty -> IO (Either (ParseError Token) ty)
+parseFile : (fn : String) → Rule ty → IO (Either (ParseError Token) ty)
 parseFile fn p
     = do Right str <- readFile fn
-             | Left err => pure (Left (FileFail err))
+             | Left err ⇒ pure (Left (FileFail err))
          pure (runParser str p)

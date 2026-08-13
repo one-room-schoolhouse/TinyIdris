@@ -10,13 +10,13 @@ import Data.SortedMap
 public export
 data Def : Type where
     None : Def -- Not yet defined
-    PMDef : (args : List Name) -> (treeCT : CaseTree args) ->
+    PMDef : (args : List Name) → (treeCT : CaseTree args) →
             Def -- Ordinary function definition
-    DCon : (tag : Int) -> (arity : Nat) -> Def -- data constructor
-    TCon : (tag : Int) -> (arity : Nat) -> Def
+    DCon : (tag : Int) → (arity : Nat) → Def -- data constructor
+    TCon : (tag : Int) → (arity : Nat) → Def
     Hole : Def
-    Guess : (guess : Term []) ->
-            (constraints : List Int) -> Def -- unification constraints
+    Guess : (guess : Term []) →
+            (constraints : List Int) → Def -- unification constraints
 
 -- Idris 2 holds a lot more information about names than just their
 -- type and definition, but that's enough for us here
@@ -27,7 +27,7 @@ record GlobalDef where
   definition : Def
 
 export
-newDef : Term [] -> Def -> GlobalDef
+newDef : Term [] → Def → GlobalDef
 newDef ty d = MkGlobalDef ty d
 
 -- A mapping from names to definitions
@@ -47,7 +47,7 @@ Defs = SortedMap Name GlobalDef
 -- So, it's in Core here so that there's a more clear mapping to the full
 -- version.
 export
-lookupDef : Name -> Defs -> Core (Maybe GlobalDef)
+lookupDef : Name → Defs → Core (Maybe GlobalDef)
 lookupDef n defs = pure (SortedMap.lookup n defs)
 
 export
@@ -55,7 +55,7 @@ initDefs : Core Defs
 initDefs = pure empty
 
 export
-clearDefs : Defs -> Core Defs
+clearDefs : Defs → Core Defs
 clearDefs d = pure empty
 
 -- A phantom type for finding references to the context
@@ -77,29 +77,29 @@ record Constructor where
 -- Well typed data declaration
 public export
 data DataDef : Type where
-     MkData : (tycon : Constructor) -> (datacons : List Constructor) ->
+     MkData : (tycon : Constructor) → (datacons : List Constructor) →
               DataDef
 
 -- A well typed pattern clause
 public export
 data Clause : Type where
-     MkClause : {vars : _} ->
-                (env : Env Term vars) ->
-                (lhs : Term vars) -> (rhs : Term vars) -> Clause
+     MkClause : {vars : _} →
+                (env : Env Term vars) →
+                (lhs : Term vars) → (rhs : Term vars) → Clause
 
 -- Add (or replace) a definition
 export
-addDef : {auto c : Ref Ctxt Defs} ->
-         Name -> GlobalDef -> Core ()
+addDef : {auto c : Ref Ctxt Defs} →
+         Name → GlobalDef → Core ()
 addDef n d
     = do defs <- get Ctxt
          put Ctxt (insert n d defs)
 
 export
-updateDef : {auto c : Ref Ctxt Defs} ->
-            Name -> (GlobalDef -> GlobalDef) -> Core ()
+updateDef : {auto c : Ref Ctxt Defs} →
+            Name → (GlobalDef → GlobalDef) → Core ()
 updateDef n upd
     = do defs <- get Ctxt
          Just gdef <- lookupDef n defs
-              | Nothing => throw (UndefinedName n)
+              | Nothing ⇒ throw (UndefinedName n)
          addDef n (upd gdef)

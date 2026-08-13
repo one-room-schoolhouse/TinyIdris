@@ -13,8 +13,8 @@ import TTImp.TTImp
 -- defining names in an outer environment (e.g. where blocks) but otherwise
 -- this just checks the type and update the context.
 export
-processType : {auto c : Ref Ctxt Defs} ->
-              Name -> RawImp -> Core ()
+processType : {auto c : Ref Ctxt Defs} →
+              Name → RawImp → Core ()
 processType n ty
     = do (tychk, _) <- checkTerm [] ty (Just gType)
          -- Exercise: We should also check whether it's already defined!

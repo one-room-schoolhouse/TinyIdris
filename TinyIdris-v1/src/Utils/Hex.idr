@@ -5,7 +5,7 @@ import Data.Primitives.Views
 
 %default total
 
-hexDigit : Int -> Char
+hexDigit : Int → Char
 hexDigit 0 = '0'
 hexDigit 1 = '1'
 hexDigit 2 = '2'
@@ -26,27 +26,27 @@ hexDigit _ = 'X' -- TMP HACK: Ideally we'd have a bounds proof, generated below
 
 ||| Convert a positive integer into a list of (lower case) hexadecimal characters
 export
-asHex : Int -> String
+asHex : Int → String
 asHex n =
   if n > 0
     then pack $ asHex' n []
     else "0"
   where
-    asHex' : Int -> List Char -> List Char
+    asHex' : Int → List Char → List Char
     asHex' 0 hex = hex
     asHex' n hex with (n `divides` 16)
       asHex' (16 * div + rem) hex | DivBy div rem _ =
         asHex' (assert_smaller n div) (hexDigit rem :: hex)
 
 export
-leftPad : Char -> Nat -> String -> String
+leftPad : Char → Nat → String → String
 leftPad paddingChar padToLength str =
   if length str < padToLength
     then pack (List.replicate (minus padToLength (length str)) paddingChar) ++ str
     else str
 
 export
-fromHexDigit : Char -> Maybe Int
+fromHexDigit : Char → Maybe Int
 fromHexDigit '0' = Just 0
 fromHexDigit '1' = Just 1
 fromHexDigit '2' = Just 2
@@ -66,13 +66,13 @@ fromHexDigit 'f' = Just 15
 fromHexDigit _ = Nothing
 
 export
-fromHexChars : List Char -> Maybe Int
+fromHexChars : List Char → Maybe Int
 fromHexChars = fromHexChars' 1
   where
-    fromHexChars' : Int -> List Char -> Maybe Int
+    fromHexChars' : Int → List Char → Maybe Int
     fromHexChars' _ [] = Just 0
     fromHexChars' m (d :: ds) = pure $ !(fromHexDigit (toLower d)) * m + !(fromHexChars' (m*16) ds)
 
 export
-fromHex : String -> Maybe Int
+fromHex : String → Maybe Int
 fromHex = fromHexChars . unpack

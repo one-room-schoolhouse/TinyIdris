@@ -20,32 +20,32 @@ comment
 public export
 data Flavour = AllowDashes | Capitalised | Normal
 
-isIdentStart : Flavour -> Char -> Bool
+isIdentStart : Flavour → Char → Bool
 isIdentStart _           '_' = True
 isIdentStart Capitalised  x  = isUpper x || x > chr 160
 isIdentStart _            x  = isAlpha x || x > chr 160
 
-isIdentTrailing : Flavour -> Char -> Bool
+isIdentTrailing : Flavour → Char → Bool
 isIdentTrailing AllowDashes '-'  = True
 isIdentTrailing _           '\'' = True
 isIdentTrailing _           '_'  = True
 isIdentTrailing _            x   = isAlphaNum x || x > chr 160
 
 export %inline
-isIdent : Flavour -> String -> Bool
+isIdent : Flavour → String → Bool
 isIdent flavour string =
   case unpack string of
-    []      => False
-    (x::xs) => isIdentStart flavour x && all (isIdentTrailing flavour) xs
+    []      ⇒ False
+    (x::xs) ⇒ isIdentStart flavour x && all (isIdentTrailing flavour) xs
 
 export %inline
-ident : Flavour -> Lexer
+ident : Flavour → Lexer
 ident flavour =
   (pred $ isIdentStart flavour) <+>
     (many . pred $ isIdentTrailing flavour)
 
 export
-isIdentNormal : String -> Bool
+isIdentNormal : String → Bool
 isIdentNormal = isIdent Normal
 
 export
