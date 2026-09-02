@@ -37,24 +37,29 @@ data Error : Type where
      FileErr : String -> FileError -> Error
 
 export
-Show Error where
-  show (CantConvert env x y)
-      = "Type mismatch: " ++ show x ++ " and " ++ show y
-  show (UndefinedName x) = "Undefined name " ++ show x
-  show (GenericMsg str) = str
-  show (CaseCompile n DifferingArgNumbers)
-      = "Patterns for " ++ show n ++ " have different numbers of arguments"
-  show (CaseCompile n DifferingTypes)
-      = "Patterns for " ++ show n ++ " require matching on different types"
-  show (CaseCompile n UnknownType)
-      = "Can't infer type to match in " ++ show n
-  show (CaseCompile n (MatchErased (_ ** (env, tm))))
-      = "Attempt to match on erased argument " ++ show tm ++
-                   " in " ++ show n
-  show (CaseCompile n (NotFullyApplied c))
-      = "Constructor " ++ show c ++ " is not fully applied"
+stringify : Error -> String
+stringify (CantConvert env x y)
+    = "Type mismatch: " ++ show x ++ " and " ++ show y
+stringify (UndefinedName x) = "Undefined name " ++ show x
+stringify (GenericMsg str) = str
+stringify (CaseCompile n DifferingArgNumbers)
+    = "Patterns for " ++ show n ++ " have different numbers of arguments"
+stringify (CaseCompile n DifferingTypes)
+    = "Patterns for " ++ show n ++ " require matching on different types"
+stringify (CaseCompile n UnknownType)
+    = "Can't infer type to match in " ++ show n
+stringify (CaseCompile n (MatchErased (_ ** (env, tm))))
+    = "Attempt to match on erased argument " ++ show tm ++
+                 " in " ++ show n
+stringify (CaseCompile n (NotFullyApplied c))
+    = "Constructor " ++ show c ++ " is not fully applied"
+stringify (FileErr fname err) = "File error (" ++ fname ++ "): " ++ show err
 
-  show (FileErr fname err) = "File error (" ++ fname ++ "): " ++ show err
+-- Idris calls its standard string-conversion operation `show`.
+-- Keep that interface as a compatibility wrapper around the clearer name above.
+export
+Show Error where
+  show = stringify
 
 -- Core is a wrapper around IO that is specialised for efficiency.
 export
