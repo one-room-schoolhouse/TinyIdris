@@ -197,7 +197,11 @@ fromOctLit str
 
 rawTokens : TokenMap Token
 rawTokens =
-    [(comment, Comment),
+    [(exact "→", \_ => Symbol "->"),
+     (exact "⇒", \_ => Symbol "=>"),
+     (exact "←", \_ => Symbol "<-"),
+     (exact "≤", \_ => Symbol "<="),
+     (comment, Comment),
      (blockComment, Comment),
      (docComment, DocComment . drop 3),
      (cgDirective, mkDirective),
