@@ -1,7 +1,8 @@
--- value_type may be any type. The type name is erased before execution.
+-- any_type is the domain: value has this type.
+-- Idris infers any_type and erases it before execution.
 -- value must be used exactly once.
 -- The obvious result, (value, value), is rejected because it uses value twice.
-duplicate : {0 value_type : Type} → (1 value : value_type) → (value_type, value_type)
+duplicate : (1 value : any_type) → (any_type, any_type)
 duplicate value = ?duplicate_right
 
 
