@@ -1,0 +1,34 @@
+data Number : Type where
+     Z : Number
+     S : Number → Number
+
+plus : Number → Number → Number
+pat y : Number ⇒
+   plus Z y = y
+pat k : Number, y : Number ⇒
+   plus (S k) y = S (plus k y)
+
+data List : Number → Type → Type where
+     Nil : (a : Type) → List Z a
+     Cons : (a : Type) → (k : Number) →
+            a → List k a → List (S k) a
+
+append : (a : _) → (n : _) → (m : _) →
+         List n a → List m a → List (plus n m) a
+pat a : Type, k : Number, ys : List k a ⇒
+    append a Z k (Nil a) ys = ys
+pat a : Type, n : Number, x : a, xs : List n a, k : Number, ys : List k a ⇒
+    append a (S n) k (Cons a n x xs) ys
+        = Cons _ _ x (append _ _ _ xs ys)
+
+data Test : Type where
+     A : Test
+     B : Test
+     C : Test
+     D : Test
+
+list1 : List (S (S Z)) Test
+list1 = Cons _ _ A (Cons _ _ B (Nil _))
+
+list2 : List (S (S Z)) Test
+list2 = Cons _ _ C (Cons _ _ D (Nil _))

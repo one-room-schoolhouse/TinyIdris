@@ -1,8 +1,8 @@
--- A may be any type. The type name is erased before execution.
--- x must be used exactly once.
--- The obvious result, (x, x), is rejected because it uses x twice.
-duplicate : {0 A : Type} → (1 x : A) → (A, A)
-duplicate x = ?duplicate_right
+-- value_type may be any type. The type name is erased before execution.
+-- value must be used exactly once.
+-- The obvious result, (value, value), is rejected because it uses value twice.
+duplicate : {0 value_type : Type} → (1 value : value_type) → (value_type, value_type)
+duplicate value = ?duplicate_right
 
 
 my_id : a → a
