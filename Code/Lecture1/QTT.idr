@@ -1,9 +1,9 @@
--- any_type is the domain: value has this type.
+-- any_type is the domain: x has this type.
 -- Idris infers any_type and erases it before execution.
--- value must be used exactly once.
--- The obvious result, (value, value), is rejected because it uses value twice.
-duplicate : (1 value : any_type) → (any_type, any_type)
-duplicate value = ?duplicate_right
+-- x must be used exactly once.
+-- The obvious result, (x, x), is rejected because it uses x twice.
+duplicate : (1 x : any_type) → (any_type, any_type)
+duplicate x = ?duplicate_right
 
 
 my_id : a → a
