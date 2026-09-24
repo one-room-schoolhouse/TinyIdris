@@ -1,0 +1,9 @@
+data Number : Type where
+     Z : Number
+     S : Number → Number
+
+plus : Number → Number → Number
+pat y : Number ⇒
+   plus Z y = y
+pat k : Number, y : Number ⇒
+   plus (S k) y = S (plus k y)
